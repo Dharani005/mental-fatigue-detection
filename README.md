@@ -5,45 +5,6 @@ An end-to-end Python system for detecting real-time mental fatigue during timed 
 Includes a **Desktop Tkinter Application** for typing tasks, live behavioral tracking, in-app ML analytics, and automated clean dataset exports for **Microsoft Power BI** dashboards.
 
 ---
-
-## 📌 Architecture & System Flow
-
-```
-                  +----------------------------------------------+
-                  |         Tkinter Desktop Station              |
-                  |  (Live Arithmetic & Multi-Signal Logging)    |
-                  +----------------------------------------------+
-                                          |
-     +-------------------+---------------+-------------------+-------------------+
-     |                   |               |                   |                   |
-Keystrokes           Mouse Events   Performance Logs   Fatigue Prompts      Break Events
-(press/release)      (motion/click)  (accuracy/RT)      (Karolinska 1-7)    (start/duration)
-     |                   |               |                   |                   |
-     +-------------------+---------------+-------------------+-------------------+
-                                          |
-                                          v
-                         +-------------------------------+
-                         |   Window Feature Engineering  |
-                         |  (10-question checkpoints)    |
-                         +-------------------------------+
-                                          |
-                                          v
-                         +-------------------------------+
-                         |      XGBoost Model Pipeline   |
-                         |  (5-Fold Stratified CV, SHAP) |
-                         +-------------------------------+
-                                          |
-                    +---------------------+---------------------+
-                    |                                           |
-                    v                                           v
-    +-------------------------------+           +-------------------------------+
-    |   Tkinter Desktop Analytics   |           |    Power BI Desktop Reports   |
-    | (Real-time in-app dashboard)  |           |  (Star Schema & DAX Measures) |
-    +-------------------------------+           +-------------------------------+
-```
-
----
-
 ## 📊 Signal Set (8 Core Signals)
 
 | # | Signal Name | Category | Role | Description & Notes |
@@ -137,17 +98,6 @@ python src/model_training.py
 # Step E: Export Power BI datasets
 python src/power_bi_export.py
 ```
-
----
-
-## 📈 Power BI Dashboard Integration
-
-All exported tables are stored in `data/power_bi_export/`.
-
-Refer to [`power_bi_dashboard_guide.md`](power_bi_dashboard_guide.md) for:
-- Star schema relationship diagrams (1-to-many connections).
-- DAX measures (`Avg Actual Fatigue`, `Avg Predicted Fatigue`, `Prediction Gap`, `Careless Error Rate %`, `Fatigue Status Alert`).
-- Recommended 4-page dashboard visuals and color palettes.
 
 ---
 
