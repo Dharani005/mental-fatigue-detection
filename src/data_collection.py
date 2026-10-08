@@ -9,12 +9,19 @@ Outputs 5 distinct CSV logs per session tagged by a unique session ID.
 """
 
 import os
+import sys
 import time
 import random
 import datetime
 import pandas as pd
 import tkinter as tk
 from tkinter import messagebox, ttk
+
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
+DEFAULT_DATA_DIR = os.path.join(PROJECT_ROOT, "data")
 
 
 class FatigueDataCollectorApp:
@@ -40,7 +47,7 @@ class FatigueDataCollectorApp:
         self.total_questions = total_questions
         self.difficulty_tier = difficulty_tier
         self.session_id = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        self.output_dir = os.path.join(os.getcwd(), "data")
+        self.output_dir = DEFAULT_DATA_DIR
         os.makedirs(self.output_dir, exist_ok=True)
 
         # State tracking
@@ -449,18 +456,18 @@ class FatigueDataCollectorApp:
         self.root.destroy()
 
     def _export_csvs(self):
-        """Write all 5 collected data logs to CSV files."""
-        files = {
-            f"keystrokes_{self.session_id}.csv": self.keystroke_logs,
-            f"mouse_events_{self.session_id}.csv": self.mouse_event_logs,
-            f"performance_{self.session_id}.csv": self.performance_logs,
-            f"fatigue_ratings_{self.session_id}.csv": self.fatigue_rating_logs,
-            f"breaks_{self.session_id}.csv": self.break_logs,
+        """Write all 5 collected data logs to CSV files with schema guarantees."""
+        schemas = {
+            f"keystrokes_{self.session_id}.csv": (self.keystroke_logs, ["session_id", "question_index", "timestamp", "datetime_iso", "event_type", "key_symbol", "is_backspace"]),
+            f"mouse_events_{self.session_id}.csv": (self.mouse_event_logs, ["session_id", "question_index", "timestamp", "event_type", "x", "y", "target_element"]),
+            f"performance_{self.session_id}.csv": (self.performance_logs, ["session_id", "question_index", "question_text", "correct_answer", "user_answer", "is_correct", "response_time_sec", "elapsed_session_time_sec", "difficulty_tier"]),
+            f"fatigue_ratings_{self.session_id}.csv": (self.fatigue_rating_logs, ["session_id", "question_checkpoint", "timestamp", "datetime_iso", "fatigue_score"]),
+            f"breaks_{self.session_id}.csv": (self.break_logs, ["session_id", "question_index", "break_start_time", "break_end_time", "duration_sec"]),
         }
 
-        for filename, data in files.items():
+        for filename, (data, cols) in schemas.items():
             filepath = os.path.join(self.output_dir, filename)
-            df = pd.DataFrame(data)
+            df = pd.DataFrame(data) if data else pd.DataFrame(columns=cols)
             df.to_csv(filepath, index=False)
             print(f"[EXPORT] Saved {len(df)} rows to {filepath}")
 

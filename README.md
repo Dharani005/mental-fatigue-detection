@@ -1,48 +1,45 @@
-# Mental Fatigue Detection — Multi-Signal System
+# Mental Fatigue Detection — Multi-Signal System & Desktop Station
 
 An end-to-end Python system for detecting real-time mental fatigue during timed cognitive tasks using a validated multi-signal architecture (keystroke dynamics, mouse movement, task performance, error taxonomy, break behavior, and time-on-task) validated against self-reported Karolinska Sleepiness Scale ground truth.
 
+Includes a **Desktop Tkinter Application** for typing tasks, live behavioral tracking, in-app ML analytics, and automated clean dataset exports for **Microsoft Power BI** dashboards.
+
 ---
 
-## 📌 Executive Summary & Architecture Rationale
-
-### Why Single-Signal (Keystroke-Only) Detection Was Rejected
-Single-signal fatigue detection models (such as relying exclusively on typing speed or inter-key pauses) suffer from critical real-world failure modes:
-1. **High Skill & Behavioral Variance**: Fast vs slow typists introduce severe baseline baseline confounding.
-2. **Context Ambiguity**: A pause in typing can signify deep reflection, distraction, or true fatigue.
-3. **No Cognitive Ground Truth Validation**: Without grounding predictor signals against a validated subjective fatigue benchmark (such as the Karolinska Sleepiness Scale), models risk fitting task difficulty rather than physiological mental exhaustion.
-
-### The Multi-Signal Solution
-This project combines 8 distinct signals recorded across 50-question timed arithmetic sessions to capture motor, cognitive, and self-regulatory degradation simultaneously:
+## 📌 Architecture & System Flow
 
 ```
                   +----------------------------------------------+
-                  |         Tkinter Arithmetic Session           |
+                  |         Tkinter Desktop Station              |
+                  |  (Live Arithmetic & Multi-Signal Logging)    |
                   +----------------------------------------------+
-                                         |
+                                          |
      +-------------------+---------------+-------------------+-------------------+
      |                   |               |                   |                   |
 Keystrokes           Mouse Events   Performance Logs   Fatigue Prompts      Break Events
 (press/release)      (motion/click)  (accuracy/RT)      (Karolinska 1-7)    (start/duration)
      |                   |               |                   |                   |
      +-------------------+---------------+-------------------+-------------------+
-                                         |
-                                         v
+                                          |
+                                          v
                          +-------------------------------+
                          |   Window Feature Engineering  |
                          |  (10-question checkpoints)    |
                          +-------------------------------+
-                                         |
-                                         v
+                                          |
+                                          v
                          +-------------------------------+
                          |      XGBoost Model Pipeline   |
                          |  (5-Fold Stratified CV, SHAP) |
                          +-------------------------------+
-                                         |
-                                         v
-                         +-------------------------------+
-                         |   Streamlit Demo Dashboard    |
-                         +-------------------------------+
+                                          |
+                    +---------------------+---------------------+
+                    |                                           |
+                    v                                           v
+    +-------------------------------+           +-------------------------------+
+    |   Tkinter Desktop Analytics   |           |    Power BI Desktop Reports   |
+    | (Real-time in-app dashboard)  |           |  (Star Schema & DAX Measures) |
+    +-------------------------------+           +-------------------------------+
 ```
 
 ---
@@ -67,24 +64,33 @@ Keystrokes           Mouse Events   Performance Logs   Fatigue Prompts      Brea
 ```
 mental fatigue detection/
 │
-├── data/                         # CSV session outputs & SHAP plot artifacts
+├── data/                                 # Raw session CSVs & SHAP plots
 │   ├── keystrokes_<session_id>.csv
 │   ├── mouse_events_<session_id>.csv
 │   ├── performance_<session_id>.csv
 │   ├── fatigue_ratings_<session_id>.csv
-│   └── breaks_<session_id>.csv
+│   ├── breaks_<session_id>.csv
+│   └── power_bi_export/                 # Normalized Power BI tables
+│       ├── power_bi_sessions_summary.csv
+│       ├── power_bi_window_features.csv
+│       ├── power_bi_question_performance.csv
+│       └── power_bi_feature_importance.csv
 │
 ├── src/
 │   ├── __init__.py
-│   ├── data_collection.py        # Stage 1: Tkinter desktop app
-│   ├── feature_engineering.py    # Stage 2: 10-question window feature extraction
-│   ├── label_preparation.py      # Stage 3: Continuous vs binary target formatting
-│   ├── model_training.py         # Stage 4: XGBoost, 5-Fold Stratified CV, ANOVA & SHAP
-│   └── generate_sample_data.py   # Utility: Automated multi-session data generator
+│   ├── tkinter_dashboard.py              # Unified Desktop Tkinter GUI Application
+│   ├── data_collection.py                # Standalone Tkinter task
+│   ├── feature_engineering.py            # Stage 2: 10-question window feature extraction
+│   ├── label_preparation.py              # Stage 3: Continuous vs binary target formatting
+│   ├── model_training.py                 # Stage 4: XGBoost, 5-Fold Stratified CV, ANOVA & SHAP
+│   ├── power_bi_export.py                # Power BI dataset generator
+│   └── generate_sample_data.py           # Utility: Automated multi-session data generator
 │
-├── app.py                        # Stage 5: Streamlit interactive demo dashboard
-├── README.md                     # Stage 6: Documentation & interview guide
-└── implementation_plan.md      # Technical blueprint
+├── app.py                                # Desktop application launcher
+├── main.py                               # Standard root launcher
+├── power_bi_dashboard_guide.md           # Power BI build guide, Star Schema & DAX formulas
+├── requirements.txt                      # Project dependencies
+└── README.md                             # Documentation
 ```
 
 ---
@@ -94,97 +100,61 @@ mental fatigue detection/
 ### 1. Installation & Environment Setup
 Ensure Python 3.9+ is installed, then install dependencies:
 ```bash
-pip install pandas numpy xgboost shap streamlit scipy matplotlib scikit-learn
+pip install -r requirements.txt
 ```
 
-### 2. Run Data Collection App (Stage 1)
-To run the interactive Tkinter application and complete a 50-question session:
+### 2. Launch the Desktop Application (Typing + Analytics + Power BI Exporter)
 ```bash
-python src/data_collection.py
+python app.py
 ```
-*Note: To generate automated benchmark sessions for testing without manual typing, run:*
+*or*
 ```bash
+python main.py
+```
+
+Inside the application:
+- **Tab 1 (Typing & Cognitive Assessment)**: Click **Start New Session (50 Qs)** or **Quick Test (10 Qs)** to start the interactive arithmetic task with live keystroke/mouse tracking.
+- **Tab 2 (Fatigue Analytics & ML Model)**: Inspect session predictions, multi-signal degradation curves, and SHAP top drivers.
+- **Tab 3 (Power BI Export Center)**: Click **Export All Datasets for Power BI** to create clean CSVs for Power BI.
+
+---
+
+### 3. Run Pipeline via Terminal (Optional)
+
+```bash
+# Step A: (Optional) Generate simulated benchmark sessions
 python src/generate_sample_data.py
-```
 
-### 3. Run Feature Engineering & Label Prep (Stages 2 & 3)
-```bash
+# Step B: Extract 18 multi-signal features across 10-question windows
 python src/feature_engineering.py
+
+# Step C: Prepare labels
 python src/label_preparation.py
-```
 
-### 4. Train Model & Run SHAP / ANOVA (Stage 4)
-```bash
+# Step D: Train XGBoost, run Stratified CV, ANOVA & SHAP
 python src/model_training.py
-```
 
-### 5. Launch Interactive Streamlit Demo (Stage 5)
-```bash
-streamlit run app.py
+# Step E: Export Power BI datasets
+python src/power_bi_export.py
 ```
 
 ---
 
-## 🔬 Feature Engineering Logic (Stage 2)
+## 📈 Power BI Dashboard Integration
 
-All raw event logs are segmented into **10-question non-overlapping windows** aligned with each Karolinska fatigue checkpoint (Q1–10, Q11–20, Q21–30, Q31–40, Q41–50).
+All exported tables are stored in `data/power_bi_export/`.
 
-### Key Equations & Definitions
-
-1. **Keystroke Dynamics**:
-   - $\text{Mean Press Duration} = \frac{1}{N} \sum (t_{\text{release}} - t_{\text{press}})$
-   - $\text{Backspace Rate} = \frac{\text{Count}(\text{BackSpace})}{\text{Total KeyPresses}}$
-   - $\text{Rhythm Variability} = \sigma(\Delta t_{\text{press}_i, \text{press}_{i-1}})$
-
-2. **Mouse Movement Patterns**:
-   - $\text{Mouse Speed} = \frac{\sqrt{\Delta x^2 + \Delta y^2}}{\Delta t}$
-   - $\text{Movement Jitter} = \sigma(\text{atan2}(\Delta y, \Delta x))$ (std dev of directional heading angles)
-   - $\text{Click Precision} = \sqrt{(x_{\text{click}} - x_{\text{target}})^2 + (y_{\text{click}} - y_{\text{target}})^2}$
-
-3. **Error Pattern Taxonomy**:
-   - Session median response time ($RT_{\text{med}}$) is calculated across all 50 questions.
-   - $\text{Careless Error Rate} = \frac{\text{Count}(\text{Wrong} \land RT < RT_{\text{med}})}{10}$
-   - $\text{Effortful Error Rate} = \frac{\text{Count}(\text{Wrong} \land RT \ge RT_{\text{med}})}{10}$
+Refer to [`power_bi_dashboard_guide.md`](power_bi_dashboard_guide.md) for:
+- Star schema relationship diagrams (1-to-many connections).
+- DAX measures (`Avg Actual Fatigue`, `Avg Predicted Fatigue`, `Prediction Gap`, `Careless Error Rate %`, `Fatigue Status Alert`).
+- Recommended 4-page dashboard visuals and color palettes.
 
 ---
 
-## 📈 Empirical Results & Validation (Stage 4)
+## 🔬 Empirical Results & Model Performance
 
-### 1. Label Strategy Decision (Stage 3 & 4)
-Continuous regression ($y \in [1, 7]$) was tested first using `XGBRegressor`. Continuous regression achieved an Out-of-Fold $R^2 = 0.9380$, which significantly exceeded the threshold ($R^2 \ge 0.10$). Thus, continuous regression was selected as the primary strategy.
-
-### 2. 5-Fold Stratified Cross-Validation Metrics
-- **Out-of-Fold $R^2$**: `0.9380`
+- **Primary Modeling Strategy**: Continuous XGBoost Regression ($y \in [1, 7]$)
+- **Out-of-Fold $R^2$ (5-Fold Stratified CV)**: `0.9380`
 - **Out-of-Fold RMSE**: `0.3521`
 - **Out-of-Fold MAE**: `0.1376`
-
-### 3. One-Way ANOVA Significance Highlights ($p < 0.05$)
-Top statistically significant features across fatigue levels:
-1. `mean_mouse_speed` ($F = 578.92, p = 1.93 \times 10^{-31}$)
-2. `mean_press_dur` ($F = 316.50, p = 5.99 \times 10^{-27}$)
-3. `time_on_task` ($F = 265.12, p = 1.21 \times 10^{-25}$)
-4. `mean_response_time` ($F = 61.92, p = 2.17 \times 10^{-15}$)
-5. `click_rate` ($F = 51.67, p = 3.29 \times 10^{-14}$)
-6. `effortful_error_rate`, `click_precision`, `backspace_rate`, `careless_error_rate` ($p < 0.005$)
-
-### 4. SHAP Feature Attribution Insights
-- **Key Positive Drivers of Fatigue**: Increasing `mean_press_dur` (slower finger lifting) and cumulative `time_on_task`.
-- **Motor Degradation**: Decreasing mouse speed and increasing directional jitter strongly correlate with rising self-reported fatigue.
-
----
-
-## ⚠️ Known Limitations & Future Work
-
-1. **Self-Report Subjectivity**: Karolinska ratings depend on user subjective introspection, which may suffer from individual reporting biases.
-2. **Single-Task Domain**: Data collection is grounded in arithmetic tasks. Generalizing to unstructured tasks (e.g. coding or writing) requires task-agnostic feature adaptors.
-3. **Sample Size & Hardware Variances**: Mouse DPI and keyboard mechanical switch polling rates introduce minor hardware-dependent baselines that can be normalized in future multi-user studies.
-
----
-
-## 🎯 Interview Defense & Design Q&A
-
-**Q: Why segment features into 10-question windows rather than per-question?**  
-*A: Per-question signals (a single backspace or fast response) are extremely noisy. Segmenting into 10-question windows aligns with the Karolinska self-report prompt interval and produces stable statistical aggregations (means, standard deviations, error rates).*
-
-**Q: Why include question difficulty if it is kept constant?**  
-*A: Question difficulty is a controlled variable. Logically recording it ensures we can explicitly test for confounding interactions and prove that performance drop-offs are driven by time-on-task and fatigue rather than sudden spikes in question difficulty.*
+- **Top ANOVA Feature Drivers**: `mean_mouse_speed` ($p < 10^{-30}$), `mean_press_dur` ($p < 10^{-26}$), `time_on_task` ($p < 10^{-25}$).

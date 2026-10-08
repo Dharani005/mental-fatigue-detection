@@ -7,13 +7,20 @@ higher backspace rate, higher mouse jitter, voluntary breaks, and rising Karolin
 """
 
 import os
+import sys
 import time
 import numpy as np
 import pandas as pd
 import datetime
 
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
-def generate_simulated_session(session_id: str, output_dir: str = "data", noise_factor: float = 0.1):
+DEFAULT_DATA_DIR = os.path.join(PROJECT_ROOT, "data")
+
+
+def generate_simulated_session(session_id: str, output_dir: str = DEFAULT_DATA_DIR, noise_factor: float = 0.1):
     """
     Generate a full set of 5 CSVs for a single 50-question fatigue session.
 
@@ -215,5 +222,5 @@ def generate_simulated_session(session_id: str, output_dir: str = "data", noise_
 if __name__ == "__main__":
     for i in range(1, 9):
         s_id = f"demo_session_{i:02d}"
-        generate_simulated_session(s_id)
+        generate_simulated_session(s_id, DEFAULT_DATA_DIR)
 

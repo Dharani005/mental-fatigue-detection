@@ -11,8 +11,11 @@ import sys
 import numpy as np
 import pandas as pd
 
-# Ensure package root is in python path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
+DEFAULT_DATA_DIR = os.path.join(PROJECT_ROOT, "data")
 
 from src.feature_engineering import build_feature_table
 
@@ -101,6 +104,6 @@ def print_label_report(label_data: dict):
 
 
 if __name__ == "__main__":
-    df_feat = build_feature_table("data")
+    df_feat = build_feature_table(DEFAULT_DATA_DIR)
     label_info = prepare_labels(df_feat)
     print_label_report(label_info)

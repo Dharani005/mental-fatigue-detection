@@ -1,0 +1,10 @@
+session_id,total_questions,overall_accuracy_pct,mean_response_time_sec,total_duration_sec,total_duration_min,initial_fatigue_score,final_fatigue_score,fatigue_score_change,total_breaks_taken,total_break_duration_sec,final_fatigue_category
+demo_session_01,50,86.0,5.64,388.1,6.47,2,6,4,8,106.4,Severe Fatigue
+demo_session_02,50,84.0,5.67,365.3,6.09,2,6,4,6,82.0,Severe Fatigue
+demo_session_03,50,78.0,5.7,364.4,6.07,2,6,4,8,79.2,Severe Fatigue
+demo_session_04,50,82.0,5.76,334.8,5.58,2,6,4,3,47.0,Severe Fatigue
+demo_session_05,50,82.0,5.8,422.4,7.04,2,6,4,11,132.5,Severe Fatigue
+demo_session_06,50,82.0,5.55,416.4,6.94,2,6,4,10,138.9,Severe Fatigue
+demo_session_07,50,72.0,5.74,390.2,6.5,2,6,4,7,103.2,Severe Fatigue
+demo_session_08,50,72.0,5.83,390.5,6.51,2,6,4,6,99.0,Severe Fatigue
+session_20261007_125714,10,80.0,12.31,123.3,2.05,4,4,0,0,0.0,Moderate Alertness

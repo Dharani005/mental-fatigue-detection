@@ -17,8 +17,11 @@ import shap
 from sklearn.model_selection import StratifiedKFold, KFold
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score, accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
 
-# Ensure package root is in python path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
+DEFAULT_DATA_DIR = os.path.join(PROJECT_ROOT, "data")
 
 from src.feature_engineering import build_feature_table
 from src.label_preparation import prepare_labels
@@ -223,7 +226,7 @@ def train_evaluate_classification(X: pd.DataFrame, y_clf: np.ndarray, n_splits: 
 
 
 
-def compute_shap_analysis(model, X: pd.DataFrame, output_dir: str = "data") -> tuple:
+def compute_shap_analysis(model, X: pd.DataFrame, output_dir: str = DEFAULT_DATA_DIR) -> tuple:
     """
     Compute SHAP values and save summary plot to file.
 
@@ -256,7 +259,7 @@ def compute_shap_analysis(model, X: pd.DataFrame, output_dir: str = "data") -> t
     return shap_vals_summary, explainer
 
 
-def run_stage4_pipeline(data_dir: str = "data") -> dict:
+def run_stage4_pipeline(data_dir: str = DEFAULT_DATA_DIR) -> dict:
     """
     Full Stage 4 pipeline: loads features, checks regression vs classification,
     runs Stratified CV, ANOVA, and SHAP.
@@ -346,5 +349,5 @@ def print_stage4_report(results: dict):
 
 
 if __name__ == "__main__":
-    res = run_stage4_pipeline("data")
+    res = run_stage4_pipeline(DEFAULT_DATA_DIR)
     print_stage4_report(res)

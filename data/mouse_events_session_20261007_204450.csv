@@ -1,0 +1,8 @@
+session_id,question_index,timestamp,event_type,x,y,target_element
+session_20261007_204450,1,1791386091.957527,move,130,25,.!notebook.!frame.!frame.!button2
+session_20261007_204450,1,1791386092.0146914,move,320,20,.!notebook.!frame.!frame3.!label
+session_20261007_204450,1,1791386092.0706267,move,160,30,.!notebook.!frame.!frame3.!label2
+session_20261007_204450,1,1791386092.1271524,move,551,189,.!notebook.!frame.!frame3
+session_20261007_204450,1,1791386092.1839657,move,535,207,.!notebook.!frame.!frame3
+session_20261007_204450,1,1791386092.2406414,move,85,9,.!notebook.!frame.!frame3.!frame.!entry
+session_20261007_204450,1,1791386092.296413,move,65,23,.!notebook.!frame.!frame3.!frame.!entry

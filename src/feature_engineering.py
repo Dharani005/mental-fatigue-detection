@@ -7,12 +7,19 @@ keystroke, mouse, performance, and break features merged with ground-truth label
 """
 
 import os
+import sys
 import glob
 import numpy as np
 import pandas as pd
 
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
-def load_session_csvs(session_id: str, data_dir: str = "data") -> dict:
+DEFAULT_DATA_DIR = os.path.join(PROJECT_ROOT, "data")
+
+
+def load_session_csvs(session_id: str, data_dir: str = DEFAULT_DATA_DIR) -> dict:
     """
     Load all 5 CSV logs for a specific session ID.
 
@@ -33,21 +40,24 @@ def load_session_csvs(session_id: str, data_dir: str = "data") -> dict:
 
     dfs = {}
     for key, path in files.items():
-        if os.path.exists(path):
-            dfs[key] = pd.read_csv(path)
+        if os.path.exists(path) and os.path.getsize(path) > 2:
+            try:
+                dfs[key] = pd.read_csv(path)
+            except Exception:
+                dfs[key] = pd.DataFrame()
         else:
-            dfs[key] = pd.DataFrame()  # Empty fallback if no data
+            dfs[key] = pd.DataFrame()  # Empty fallback if no data or 0-byte file
     return dfs
 
 
-def discover_session_ids(data_dir: str = "data") -> list:
+def discover_session_ids(data_dir: str = DEFAULT_DATA_DIR) -> list:
     """Find all unique session IDs present in the data directory."""
     perf_files = glob.glob(os.path.join(data_dir, "performance_*.csv"))
     session_ids = [os.path.basename(f).replace("performance_", "").replace(".csv", "") for f in perf_files]
     return sorted(session_ids)
 
 
-def extract_window_features(session_id: str, data_dir: str = "data") -> pd.DataFrame:
+def extract_window_features(session_id: str, data_dir: str = DEFAULT_DATA_DIR) -> pd.DataFrame:
     """
     Extract window-level feature set for a single session across all 10-question checkpoints.
 
@@ -246,7 +256,7 @@ def extract_window_features(session_id: str, data_dir: str = "data") -> pd.DataF
     return pd.DataFrame(window_rows)
 
 
-def build_feature_table(data_dir: str = "data") -> pd.DataFrame:
+def build_feature_table(data_dir: str = DEFAULT_DATA_DIR) -> pd.DataFrame:
     """
     Build unified feature table across all sessions available in data directory.
 
@@ -277,7 +287,7 @@ def build_feature_table(data_dir: str = "data") -> pd.DataFrame:
 
 
 if __name__ == "__main__":
-    df_features = build_feature_table("data")
+    df_features = build_feature_table(DEFAULT_DATA_DIR)
     print(f"\n[FEATURE ENGINEERING] Extracted Feature Table Shape: {df_features.shape}")
     print("\n--- Summary Statistics ---")
     print(df_features.describe().T[["mean", "std", "min", "50%", "max"]])
